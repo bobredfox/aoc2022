@@ -7,10 +7,16 @@ import Control.Monad.Writer
 
 -- Was mit Seilen.
 
+type Cords = (Int,Int)
+
 data Rope = Rope {
             coordsHead :: (Int, Int),
-            coordsTail :: (Int, Int)
+            coordsTail :: [(Int, Int)]
                  } deriving Show
+
+data Rope2 = Rope2 {
+            knots :: [Cords]
+                   }
 
 data Direction = U|D|L|R deriving Show
 
@@ -28,19 +34,39 @@ move :: Rope -> Move -> Writer [(Int,Int)] Rope
 move rope m@(Move _ 0) = return rope
 move rope m@(Move y x) = do
                 let rHead = headUpdate coordsH m
-                let rTail = case touching rHead coordsT of
-                              False -> coordsH
-                              True -> coordsT
-                tell [rTail]
+                let rTail = updatePositionTail (coordsH,rHead) coordsT 
+                tell [last rTail]
                 move (Rope rHead rTail) (Move y (x-1))
     where
         coordsH = coordsHead rope
         coordsT = coordsTail rope
 
 
+updatePositionTail :: [(Int, Int)] -> Move -> [(Int, Int)]
+updatePositionTail [] _ = []
+updatePositionTail (x@(x1,y1):y@(x2,y2):xs) m@(Move d _) = do 
+                                                    let xNew = headUpdate x m
+                                                    let yNew = case touching xNew y of True -> y
+                                                                                       False -> 
+
+                                                    return $ [xNew,yNew] <> updatePositionTail xs move    
+
+
+diaMove :: (Int, Int) -> (Int, Int) -> (Int, Int)
+diaMove (x1,y1) (x2,y2) | diffX > 0 && diffY > 0 = (x2 + 1, y2 + 1)
+                        | diffX > 0 && diffY < 0 = (x2 + 1, y2 - 1)
+                        | diffX < 0 && diffY > 0 = (x2 - 1, y2 + 1)
+                        | diffX < 0 && diffY < 0 = (x2 - 1, y2 - 1)
+                        | otherwise = (x2, y2)
+    where
+        diffX = x1 - x2
+        diffY = y1 - y2
+
+
 touching :: (Int,Int) -> (Int,Int) -> Bool
 touching rHead@(x1,y1) rTail@(x2,y2) | abs (x1-x2) > 1 || abs (y1-y2) > 1 = False
                                      | otherwise = True
+
 
 
 headUpdate :: (Int,Int) -> Move -> (Int,Int)
@@ -69,8 +95,9 @@ createMove (x:y:xs) | x == "U" = Move U number
 
 main :: IO()
 main = do
-    inputs <- readFile "input.txt"
+    inputs <- readFile "test.txt"
     let moves = parseMoves inputs
-    let part1 = runWriter (allMoves (Rope (0,0) (0,0)) moves)
-    print $ fst $ part1 
-    print $ length $ nub $ snd $ part1 
+    let part1 = runWriter (allMoves (Rope (0,0) [(0,0)]) moves)
+    let part2 = runWriter (allMoves (Rope (0,0) (replicate 9 (0,0))) moves)
+    print $ fst $ part2
+    print $ length $ nub $ snd $ part2 
