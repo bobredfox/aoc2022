@@ -11,7 +11,7 @@ This is a attemp to do AOC2022 with Haskell.
 | 05  | :star: | :star: |
 | 06  | :star: | :star: |
 | 07  | :star: | :star: |
-| 08  | :star: |        |
+| 08  | :star: | :star: |
 | 09  | :star: |        |
 | 10  | :star: | :star: |
 | 15  | :star: |        |
